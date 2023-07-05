@@ -36,7 +36,7 @@ const User = require('../models/UserModel');
     
         // Perbarui saldo pengguna berdasarkan metode yang dipilih
         if (method === 'increment') {
-          user.saldo += amount;
+          user.saldo += Number(amount);
         } else if (method === 'decrement') {
           // Validasi saldo cukup untuk dikurangi
           if (user.saldo < amount) {
