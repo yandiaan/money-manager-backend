@@ -1,5 +1,5 @@
 const IncomeSchema = require("../models/IncomeModel");
-
+const moment = require("moment");
 
 exports.addIncome = async (req, res) => {
   const { amount, category } = req.body;
@@ -47,4 +47,17 @@ exports.deleteIncome = async (req, res) => {
     .catch((err) => {
       res.status(500).json({ message: "Server Error" });
     });
+};
+
+exports.getIncomesLastWeek = async (req, res) => {
+  try {
+    // Mengambil 2 income teratas
+    const incomes = await IncomeSchema.find({ userId: req.user.userId })
+      .sort({ amount: -1 })
+      .limit(2);
+
+    res.status(200).json(incomes);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };

@@ -1,33 +1,40 @@
-const ExpenseSchema = require("../models/ExpenseModel")
+const ExpenseSchema = require("../models/ExpenseModel");
+const PlanSchema = require("../models/PlanModel");
 const moment = require("moment");
 
 exports.addExpense = async (req, res) => {
-    const { amount, category, note, date}  = req.body
-
-    const income = ExpenseSchema({
-        amount,
-        category,
-        note,
-        date,
-        userId: req.user.userId,
-    })
-
+    const { amount, category, note, date } = req.body;
+  
+    const expense = new ExpenseSchema({
+      amount,
+      category,
+      note,
+      date,
+      userId: req.user.userId,
+    });
+  
     try {
-        //validations
-        if(!category || !note || !date){
-            return res.status(400).json({message: 'All fields are required!'})
-        }
-        if(amount <= 0 || !amount === 'number'){
-            return res.status(400).json({message: 'Amount must be a positive number!'})
-        }
-        await income.save()
-        res.status(200).json({message: 'Expense Added'})
+      // Validations
+      if (!category || !note || !date) {
+        return res.status(400).json({ message: 'All fields are required!' });
+      }
+      if (amount <= 0 || !amount === 'number') {
+        return res.status(400).json({ message: 'Amount must be a positive number!' });
+      }
+  
+      // Check if budget exists with the same name as category
+      const budget = await PlanSchema.findOne({ userId: req.user.userId, category: category });
+      if (budget) {
+          budget.spent += amount;
+          await budget.save();
+      }
+  
+      await expense.save();
+      res.status(200).json({ message: 'Expense added' });
     } catch (error) {
-        res.status(500).json({message: 'Server Error', error: error.message})
+      res.status(500).json({ message: 'Server Error', error: error.message });
     }
-
-    console.log(income)
-}
+  };
 
 exports.getExpense = async (req, res) =>{
     try {
@@ -56,6 +63,7 @@ exports.getExpensesLastWeek = async (req, res) => {
   
       // Mengambil tanggal $gte dan $lte dari permintaan tubuh (request body) jika ada
       const { startDate, endDate } = req.body;
+      
       const startDateToUse = startDate ? moment(startDate) : lastWeekStartDate.startOf('day');
       const endDateToUse = endDate ? moment(endDate) : today.endOf('day');
   
