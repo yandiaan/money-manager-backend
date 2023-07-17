@@ -10,21 +10,20 @@ require('dotenv').config()
 
 const PORT = process.env.PORT
 
+var corsOptions = {
+    origin: 'http://localhost:8100',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  }
+
 //middlewares
 app.use(express.json())
-app.use(cors())
+app.use(cors(corsOptions))
 
 //routes
 readdirSync('./routes').map((route) => app.use('/api/v1', require('./routes/' + route)))
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);
 
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
-  });
 
 const server = () => {
     connectToDB().then(()=> {
