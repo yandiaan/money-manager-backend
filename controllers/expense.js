@@ -14,26 +14,34 @@ exports.addExpense = async (req, res) => {
     });
   
     try {
-      // Validations
-      if (!category || !note || !date) {
-        return res.status(400).json({ message: 'All fields are required!' });
-      }
-      if (amount <= 0 || !amount === 'number') {
-        return res.status(400).json({ message: 'Amount must be a positive number!' });
-      }
-  
-      // Check if budget exists with the same name as category
-      const budget = await PlanSchema.findOne({ userId: req.user.userId, category: category });
-      if (budget) {
-          budget.spent += amount;
-          await budget.save();
-      }
-  
-      await expense.save();
-      res.status(200).json({ message: 'Expense added' });
-    } catch (error) {
-      res.status(500).json({ message: 'Server Error', error: error.message });
+  // Validations
+  if (!category || !note || !date) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+  if (amount <= 0) {
+    return res.status(400).json({ message: 'Amount must be a positive number!' });
+  }
+
+  // Check if budget exists with the same name as category
+  const budget = await PlanSchema.findOne({ userId: req.user.userId, category: category });
+  if (budget) {
+    budget.spent += amount;
+
+    if (budget.spent >= budget.amount) {
+      // Show warning message for exceeding budget
+      res.status(200).json({ message: 'Expense added', budgetExceeded: true });
+    } else {
+      await budget.save();
+      res.status(200).json({ message: 'Expense added', budgetExceeded: false });
     }
+  } else {
+    res.status(200).json({ message: 'Expense added', budgetExceeded: false });
+  }
+
+  await expense.save();
+} catch (error) {
+  res.status(500).json({ message: 'Server Error', error: error.message });
+}
   };
 
 exports.getExpense = async (req, res) =>{
