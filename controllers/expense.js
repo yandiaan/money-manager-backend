@@ -25,17 +25,16 @@ exports.addExpense = async (req, res) => {
   // Check if budget exists with the same name as category
   const budget = await PlanSchema.findOne({ userId: req.user.userId, category: category });
   if (budget) {
-    budget.spent += amount;
+    Number(budget.spent) += Number(amount);
 
     if (budget.spent >= budget.amount) {
       // Show warning message for exceeding budget
+      await budget.save();
       res.status(200).json({ message: 'Expense added', budgetExceeded: true });
     } else {
       await budget.save();
       res.status(200).json({ message: 'Expense added', budgetExceeded: false });
     }
-  } else {
-    res.status(200).json({ message: 'Expense added', budgetExceeded: false });
   }
 
   await expense.save();

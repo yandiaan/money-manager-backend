@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors');
-const { db } = require('./db/db');
+const { connectToDB } = require('./db/db');
 const {readdirSync} = require('fs')
 const app = express()
 const authRoutes = require('./routes/auth');
@@ -21,9 +21,12 @@ app.use('/api/v1/user', userRoutes);
 
 
 const server = () => {
-    db()
-    app.listen(PORT, () => {
-        console.log('listening to port:', PORT)
+    connectToDB().then(()=> {
+        app.listen(PORT, () => {
+            console.log('listening to port:', PORT)
+        })
+    }).catch((err)=> {
+        console.error("Error Connect : ",err)
     })
 }
 
