@@ -13,7 +13,7 @@ const PORT = process.env.PORT
 
 //middlewares
 app.use(express.json())
-app.use(cors({ origin: 'http://localhost:8100' }));
+app.use(cors({ origin: '*' }));
 
 //routes
 readdirSync('./routes').map((route) => app.use('/api/v1', require('./routes/' + route)))
